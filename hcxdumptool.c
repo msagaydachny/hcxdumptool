@@ -211,6 +211,12 @@ static uint64_t lastrcm2;
 static uint8_t epb[PCAPNG_MAXSNAPLEN *2];
 static char gpsddata[GPSDDATA_MAX +1];
 
+#if 0
+#   define TX_LOG puts(__FUNCTION__)
+#else
+#   define TX_LOG
+#endif
+
 /*===========================================================================*/
 static inline void debugprint(int len, uint8_t *ptr)
 {
@@ -895,6 +901,7 @@ if(write(fd_socket, packetout,  HDRRT_SIZE +MAC_SIZE_QOS +REQUESTIDENTITY_SIZE) 
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -946,6 +953,7 @@ if(write(fd_socket, packetout,  HDRRT_SIZE +MAC_SIZE_NORM +2) < 0)
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -997,6 +1005,7 @@ if(write(fd_socket, packetout,  HDRRT_SIZE +MAC_SIZE_NORM +2) < 0)
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1048,6 +1057,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +AUTHENTICATIONRESPONSE
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1178,6 +1188,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +MYAUTHENTICATIONREQUES
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1249,6 +1260,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +IETAG_SIZE +essid_len 
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1288,6 +1300,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +UNDIRECTEDPROBEREQUEST
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1351,6 +1364,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +CAPABILITIESAP_SIZE +B
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1678,6 +1692,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +133) < 0)
 	}
 outgoingcount++;
 fsync(fd_socket);
+TX_LOG;
 macftx->retry = 1;
 if(write(fd_socket, packetout, HDRRT_SIZE +133) < 0)
 	{
@@ -1687,6 +1702,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +133) < 0)
 	}
 outgoingcount++;
 fsync(fd_socket);
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1696,7 +1712,10 @@ if(memcmp(&mac_mysta, macfrx->addr1, 6) == 0)
 	{
 	return;
 	}
-send_m1(macfrx->addr1, macfrx->addr2);
+if(attackclientflag == false)
+	{
+	send_m1(macfrx->addr1, macfrx->addr2);
+	}
 if((statusout & STATUS_ASSOC) == STATUS_ASSOC)
 	{
 	printtimenet(macfrx->addr1, macfrx->addr2);
@@ -1773,6 +1792,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +ASSOCIATIONID_SIZE +AS
 	}
 outgoingcount++;
 fsync(fd_socket);
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1893,6 +1913,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +ASSOCIATIONID_SIZE +AS
 	}
 outgoingcount++;
 fsync(fd_socket);
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -1902,7 +1923,10 @@ if(memcmp(&mac_mysta, macfrx->addr1, 6) == 0)
 	{
 	return;
 	}
-send_m1(macfrx->addr1, macfrx->addr2);
+if(attackclientflag == false)
+	{
+	send_m1(macfrx->addr1, macfrx->addr2);
+	}
 if((statusout & STATUS_ASSOC) == STATUS_ASSOC)
 	{
 	printtimenet(macfrx->addr1, macfrx->addr2);
@@ -1996,6 +2020,7 @@ for(c = 0; c < APLIST_MAX -1; c++)
 			}
 		outgoingcount++;
 		fsync(fd_socket);
+		TX_LOG;
 		return;
 		}
 	zeiger++;
@@ -2426,6 +2451,7 @@ if(write(fd_socket, packetout, HDRRT_SIZE +MAC_SIZE_NORM +CAPABILITIESAP_SIZE +I
 	}
 fsync(fd_socket);
 outgoingcount++;
+TX_LOG;
 return;
 }
 /*===========================================================================*/
@@ -2461,7 +2487,10 @@ for(zeiger = myaplist; zeiger < myaplist +MYAPLIST_MAX; zeiger++)
 	if((zeiger->essid_len == essidtag->len) && (memcmp(zeiger->essid, essidtag->data, essidtag->len) == 0))
 		{
 		zeiger->timestamp = timestamp;
-		send_proberesponse(macfrx->addr2, zeiger->addr, zeiger->essid_len, zeiger->essid);
+		if(attackclientflag == false)
+			{
+			send_proberesponse(macfrx->addr2, zeiger->addr, zeiger->essid_len, zeiger->essid);
+			}
 		return;
 		}
 	}
@@ -2483,7 +2512,10 @@ myaplist_ptr->addr[1] = (myouiap >> 8) & 0xff;
 myaplist_ptr->addr[0] = (myouiap >> 16) & 0xff;
 myaplist_ptr->essid_len = essidtag->len;
 memcpy(myaplist_ptr->essid, essidtag->data, essidtag->len);
-send_proberesponse(macfrx->addr2, myaplist_ptr->addr, myaplist_ptr->essid_len, myaplist_ptr->essid);
+if(attackclientflag == false)
+	{
+	send_proberesponse(macfrx->addr2, myaplist_ptr->addr, myaplist_ptr->essid_len, myaplist_ptr->essid);
+	}
 
 if(fd_pcapng != 0)
 	{
@@ -2530,7 +2562,10 @@ for(zeiger = myaplist; zeiger < myaplist +MYAPLIST_MAX; zeiger++)
 	if((memcmp(zeiger->addr, macfrx->addr1, 6) == 0) && (zeiger->essid_len == essidtag->len) && (memcmp(zeiger->essid, essidtag->data, essidtag->len) == 0))
 		{
 		zeiger->timestamp = timestamp;
-		send_proberesponse(macfrx->addr2, zeiger->addr, zeiger->essid_len, zeiger->essid);
+		if(attackclientflag == false)
+			{
+			send_proberesponse(macfrx->addr2, zeiger->addr, zeiger->essid_len, zeiger->essid);
+			}
 		return;
 		}
 	}
@@ -2546,7 +2581,9 @@ myaplist_ptr->timestamp = timestamp;
 memcpy(myaplist_ptr->addr, macfrx->addr1, 6);
 myaplist_ptr->essid_len = essidtag->len;
 memcpy(myaplist_ptr->essid, essidtag->data, essidtag->len);
-send_proberesponse(macfrx->addr2, myaplist_ptr->addr, myaplist_ptr->essid_len, myaplist_ptr->essid);
+if(attackclientflag == false){
+    send_proberesponse(macfrx->addr2, myaplist_ptr->addr, myaplist_ptr->essid_len, myaplist_ptr->essid);
+}
 if(fd_pcapng != 0)
 	{
 	writeepb(fd_pcapng);
@@ -3560,8 +3597,11 @@ while(1)
 				}
 			if(set_channel() == true)
 				{
-				send_broadcastbeacon();
-				send_undirected_proberequest();
+				if(activescanflag == false)
+					{
+					send_broadcastbeacon();
+					send_undirected_proberequest();
+					}
 				}
 			else
 				{
